@@ -1,0 +1,19 @@
+<invoke name="run_terminal_cmd">
+<parameter name="command">cd /Users/cagdas/Desktop/workspace/yellcord && npm run dev</parameter>
+<parameter name="explanation">Next.js development sunucusunu başlatıyorum</parameter>
+<parameter name="is_background">false</parameter>
+<parameter name="require_user_approval">false</parameter>
+</invoke>
+
+<invoke name="read_file">
+<parameter name="explanation">package.json dosyasını kontrol ediyorum</parameter>
+<parameter name="relative_workspace_path">package.json</parameter>
+<parameter name="should_read_entire_file">true</parameter>
+<parameter name="start_line_one_indexed">1</parameter>
+<parameter name="end_line_one_indexed_inclusive">50</parameter>
+</invoke>
+
+<invoke name="list_dir">
+<parameter name="explanation">Proje dizinini kontrol ediyorum</parameter>
+<parameter name="relative_workspace_path">.</parameter>
+</invoke> 

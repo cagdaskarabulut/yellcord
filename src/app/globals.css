@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgb(var(--background-end-rgb))
+  )
+  rgb(var(--background-start-rgb));
+}
+
+/* Scrollbar stilleri */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2f3136;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #202225;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #18191c;
+}
+
+/* Mobil cihazlar için stil */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+  /* Diğer mobil stiller */
+}
+
+/* Tablet cihazlar için stil */
+@media (min-width: 641px) and (max-width: 1024px) {
+  body {
+    font-size: 16px;
+  }
+  /* Diğer tablet stiller */
+}
+
+/* Masaüstü cihazlar için stil */
+@media (min-width: 1025px) {
+  body {
+    font-size: 18px;
+  }
+  /* Diğer masaüstü stiller */
+} 
