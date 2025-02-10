@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cat > public/robots.txt << EOL
+User-agent: *
+Allow: /
+
+Sitemap: https://yellcord.vercel.app/sitemap.xml
+EOL 

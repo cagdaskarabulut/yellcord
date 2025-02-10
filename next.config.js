@@ -2,8 +2,19 @@
 const nextConfig = {
   images: {
     domains: [
-      `${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com`,
+      "karabulut-storage.s3.us-east-1.amazonaws.com",
+      "karabulut-storage.s3.amazonaws.com",
     ],
+  },
+  env: {
+    DB_URL: process.env.DB_URL,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_URL_INTERNAL: process.env.NEXTAUTH_URL_INTERNAL,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID,
+    AWS_S3_SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY,
+    AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME,
+    AWS_S3_REGION: process.env.AWS_S3_REGION,
   },
   webpack: (config) => {
     config.externals.push({
@@ -23,6 +34,45 @@ const nextConfig = {
     };
 
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: "/api/socket",
+        headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: process.env.NEXTAUTH_URL || "http://localhost:3000",
+          },
+          { key: "Access-Control-Allow-Methods", value: "GET,POST,OPTIONS" },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
+          },
+        ],
+      },
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          {
+            key: "Access-Control-Allow-Origin",
+            value: process.env.NEXTAUTH_URL || "http://localhost:3000",
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,DELETE,PATCH,POST,PUT",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
+          },
+        ],
+      },
+    ];
   },
 };
 

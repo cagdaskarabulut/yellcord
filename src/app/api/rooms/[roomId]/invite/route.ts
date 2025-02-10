@@ -1,24 +1,39 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import pool from "@/lib/db";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { roomId: string } }
-) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // ✅ URL'den `roomId` parametresini al
+    const urlParts = request.nextUrl.pathname.split("/");
+    const roomId = urlParts[urlParts.length - 2]; // `[roomId]` parametresi
+
+    if (!roomId) {
+      return NextResponse.json(
+        { error: "Oda ID eksik" },
+        { status: 400 }
+      );
+    }
+
     // Odanın sahibi olup olmadığını kontrol et
     const roomCheck = await pool.query(
       "SELECT created_by FROM yellcord_rooms WHERE id = $1",
-      [params.roomId]
+      [roomId]
     );
+
+    if (roomCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Oda bulunamadı" },
+        { status: 404 }
+      );
+    }
 
     if (roomCheck.rows[0]?.created_by !== parseInt(session.user.id)) {
       return NextResponse.json(
@@ -36,15 +51,15 @@ export async function POST(
       INSERT INTO yellcord_invites (code, room_id, created_by, expires_at)
       VALUES ($1, $2, $3, NOW() + INTERVAL '24 hours')
       `,
-      [inviteCode, params.roomId, session.user.id]
+      [inviteCode, roomId, session.user.id]
     );
 
     return NextResponse.json({ inviteLink });
   } catch (error) {
-    console.error("Error creating invite:", error);
+    console.error("❌ Davet linki oluşturma hatası:", error);
     return NextResponse.json(
       { error: "Davet linki oluşturulamadı" },
       { status: 500 }
     );
   }
-} 
+}

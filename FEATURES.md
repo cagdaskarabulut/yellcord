@@ -27,20 +27,20 @@
 - [X] Socket.io kullanarak mesajlaşma altyapısını kur.
 - [X] Metin mesajları canlı olarak iletilsin.
 - [X] Mesajlar PostgreSQL'de saklansın ve geri çağrılabilsin.
-- [X] Mesaj düzenleme ve silme özellikleri eklensin.
+- [ ] Mesaj düzenleme ve silme özellikleri eklensin.
 - [X] Kullanıcılar metin odasında mesaj gönderebilsin.
 
 ## 6. Sesli ve Görüntülü Görüşme (WebRTC)
-- [X] Kullanıcılar sesli/görüntülü sohbet başlatabilsin.
-- [X] Birden fazla kişi aynı anda bir kanalda konuşabilsin.
-- [X] WebRTC ile ses ve görüntü aktarımı sağla.
-- [X] Kullanıcı ayrıldığında bağlantıyı kes.
+- [ ] Kullanıcılar sesli/görüntülü sohbet başlatabilsin.
+- [ ] Birden fazla kişi aynı anda bir kanalda konuşabilsin.
+- [ ] WebRTC ile ses ve görüntü aktarımı sağla.
+- [ ] Kullanıcı ayrıldığında bağlantıyı kes.
 
 ## 7. Ekran Paylaşımı (WebRTC)
-- [X] Kullanıcılar ekran paylaşabilsin.
-- [X] Belli bir pencere veya tüm ekran paylaşılabilsin.
-- [X] Bağlantı sonlandırıldığında paylaşım durdurulsun.
-- [X] Kanal içindeki kullanıcılar başkasının ekranını izleyebilsin.
+- [ ] Kullanıcılar ekran paylaşabilsin.
+- [ ] Belli bir pencere veya tüm ekran paylaşılabilsin.
+- [ ] Bağlantı sonlandırıldığında paylaşım durdurulsun.
+- [ ] Kanal içindeki kullanıcılar başkasının ekranını izleyebilsin.
 
 ## 8. Oda Katılımcı Listesi
 - [X] Sağ tarafta odaya kayıtlı kullanıcıları listele.

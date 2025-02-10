@@ -1,68 +1,166 @@
-import { useEffect, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { useSession } from 'next-auth/react';
+"use client";
 
-export function useSocket() {
-  const { data: session } = useSession();
-  const socketRef = useRef<Socket | null>(null);
+import { useEffect, useRef, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
+
+export const useSocket = () => {
+  const socket = useRef<Socket | undefined>(undefined);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (session?.user) {
-      socketRef.current = io({
-        path: '/api/socket',
-      });
+    const initSocket = async () => {
+      try {
+        // Socket.io sunucusuna bağlan
+        await fetch("/api/socket");
 
-      return () => {
-        if (socketRef.current) {
-          socketRef.current.disconnect();
-        }
-      };
+        socket.current = io({
+          path: "/api/socket",
+          addTrailingSlash: false,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          timeout: 10000,
+          transports: ["websocket", "polling"],
+          withCredentials: true,
+        });
+
+        socket.current.on("connect", () => {
+          console.log("Socket bağlantısı kuruldu");
+          setIsConnected(true);
+        });
+
+        socket.current.on("connect_error", (error) => {
+          console.error("Socket bağlantı hatası:", error);
+          setIsConnected(false);
+        });
+
+        socket.current.on("error", (error) => {
+          console.error("Socket hatası:", error);
+        });
+
+        socket.current.on("disconnect", (reason) => {
+          console.log("Socket bağlantısı kesildi:", reason);
+          setIsConnected(false);
+        });
+
+        socket.current.on("user-joined", (data) => {
+          console.log("Kullanıcı odaya katıldı:", data);
+        });
+
+        socket.current.on("user-left", (data) => {
+          console.log("Kullanıcı odadan ayrıldı:", data);
+        });
+
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Socket başlatma hatası:", error);
+        setIsConnected(false);
+      }
+    };
+
+    if (!socket.current && !isInitialized) {
+      initSocket();
     }
-  }, [session]);
 
-  const joinRoom = (roomId: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit('join-room', roomId);
+    return () => {
+      if (socket.current) {
+        socket.current.disconnect();
+        setIsConnected(false);
+        setIsInitialized(false);
+      }
+    };
+  }, [isInitialized]);
+
+  const joinRoom = async (roomId: string) => {
+    // Bağlantı yoksa ve socket başlatılmamışsa, başlatmayı dene
+    if (!isConnected && !isInitialized) {
+      try {
+        await fetch("/api/socket");
+        socket.current = io({
+          path: "/api/socket",
+          addTrailingSlash: false,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          timeout: 10000,
+          transports: ["websocket", "polling"],
+          withCredentials: true,
+        });
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Socket başlatma hatası:", error);
+        return;
+      }
+    }
+
+    // Socket bağlantısını kontrol et
+    if (socket.current?.connected) {
+      socket.current.emit("join-room", roomId);
+      console.log(`Odaya katılındı: ${roomId}`);
+    } else {
+      console.error("Socket bağlantısı yok - Odaya katılınamadı");
+      // Bağlantıyı yeniden kurmayı dene
+      socket.current?.connect();
     }
   };
 
   const leaveRoom = (roomId: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit('leave-room', roomId);
+    if (socket.current?.connected) {
+      socket.current.emit("leave-room", roomId);
+      console.log(`Odadan çıkıldı: ${roomId}`);
     }
   };
 
   const sendMessage = (roomId: string, content: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit('send-message', { roomId, content });
+    if (socket.current?.connected) {
+      socket.current.emit("send-message", { roomId, content });
+      console.log("Mesaj gönderildi:", { roomId, content });
+    } else {
+      console.error("Socket bağlantısı yok - Mesaj gönderilemedi");
+      // Bağlantıyı yeniden kurmayı dene
+      socket.current?.connect();
     }
   };
 
   const onNewMessage = (callback: (data: any) => void) => {
-    if (socketRef.current) {
-      socketRef.current.on('new-message', callback);
+    if (socket.current) {
+      socket.current.on('new-message', callback);
+    }
+  };
+
+  const onUserJoined = (callback: (data: { userId: string; username: string }) => void) => {
+    if (socket.current) {
+      socket.current.on('user-joined', callback);
+    }
+  };
+
+  const onUserLeft = (callback: (data: { userId: string; username: string }) => void) => {
+    if (socket.current) {
+      socket.current.on('user-left', callback);
     }
   };
 
   const startVoice = (roomId: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit('start-voice', roomId);
+    if (socket.current) {
+      socket.current.emit('start-voice', roomId);
     }
   };
 
   const stopVoice = (roomId: string) => {
-    if (socketRef.current) {
-      socketRef.current.emit('stop-voice', roomId);
+    if (socket.current) {
+      socket.current.emit('stop-voice', roomId);
     }
   };
 
   return {
-    socket: socketRef.current,
+    socket: socket.current,
+    isConnected,
     joinRoom,
     leaveRoom,
     sendMessage,
     onNewMessage,
+    onUserJoined,
+    onUserLeft,
     startVoice,
     stopVoice,
   };
-} 
+}; 

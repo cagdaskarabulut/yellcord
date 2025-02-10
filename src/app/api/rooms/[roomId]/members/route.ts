@@ -1,19 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function GET(
-  request: Request,
-  context: { params: { roomId: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId } = await Promise.resolve(context.params);
+    // ✅ URL'den `roomId` parametresini al
+    const urlParts = request.nextUrl.pathname.split("/");
+    const roomId = urlParts[urlParts.length - 2];
+
+    if (!roomId) {
+      return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
+    }
 
     const result = await pool.query(
       `
@@ -36,7 +39,7 @@ export async function GET(
 
     return NextResponse.json({ members: result.rows });
   } catch (error) {
-    console.error("Error fetching members:", error);
+    console.error("❌ Üyeler yüklenirken hata oluştu:", error);
     return NextResponse.json(
       { error: "Üyeler yüklenirken hata oluştu" },
       { status: 500 }
@@ -44,23 +47,43 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  context: { params: { roomId: string; memberId: string } }
-) {
+export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId, memberId } = await Promise.resolve(context.params);
+    // ✅ URL'den `roomId` parametresini al
+    const urlParts = request.nextUrl.pathname.split("/");
+    const roomId = urlParts[urlParts.length - 2];
+
+    const { searchParams } = new URL(request.url);
+    const memberId = searchParams.get("memberId");
+
+    if (!roomId) {
+      return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
+    }
+
+    if (!memberId) {
+      return NextResponse.json(
+        { error: "Üye ID'si gerekli" },
+        { status: 400 }
+      );
+    }
 
     // Odanın sahibi olup olmadığını kontrol et
     const roomCheck = await pool.query(
       "SELECT created_by FROM yellcord_rooms WHERE id = $1",
       [roomId]
     );
+
+    if (roomCheck.rows.length === 0) {
+      return NextResponse.json(
+        { error: "Oda bulunamadı" },
+        { status: 404 }
+      );
+    }
 
     if (roomCheck.rows[0]?.created_by !== parseInt(session.user.id)) {
       return NextResponse.json(
@@ -77,10 +100,10 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Üye odadan çıkarıldı" });
   } catch (error) {
-    console.error("Error removing member:", error);
+    console.error("❌ Üye çıkarılırken hata oluştu:", error);
     return NextResponse.json(
       { error: "Üye çıkarılırken hata oluştu" },
       { status: 500 }
     );
   }
-} 
+}

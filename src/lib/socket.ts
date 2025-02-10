@@ -175,5 +175,4 @@ export default async function SocketHandler(
   }
 
   res.end();
-} 
-} 
+}

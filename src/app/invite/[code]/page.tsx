@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 
@@ -13,8 +13,9 @@ interface Room {
   member_count: number;
 }
 
-export default function InvitePage({ params }: { params: { code: string } }) {
+export default function InvitePage() {
   const router = useRouter();
+  const params = useParams(); // Next.js 15 için doğru kullanım
   const { data: session, status } = useSession();
   const [room, setRoom] = useState<Room | null>(null);
   const [error, setError] = useState("");

@@ -1,16 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { code: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // ✅ URL'den `code` parametresini al
+    const urlParts = request.nextUrl.pathname.split("/");
+    const code = urlParts[urlParts.length - 1]; // `[code]` parametresi
+
+    if (!code) {
+      return NextResponse.json(
+        { error: "Davet kodu eksik" },
+        { status: 400 }
+      );
     }
 
     const result = await pool.query(
@@ -29,7 +37,7 @@ export async function GET(
         AND i.used_at IS NULL
       GROUP BY r.id
       `,
-      [params.code]
+      [code]
     );
 
     if (result.rows.length === 0) {
@@ -41,10 +49,10 @@ export async function GET(
 
     return NextResponse.json({ room: result.rows[0] });
   } catch (error) {
-    console.error("Error fetching invite:", error);
+    console.error("❌ Davet bilgileri alınırken hata:", error);
     return NextResponse.json(
       { error: "Davet bilgileri alınamadı" },
       { status: 500 }
     );
   }
-} 
+}

@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
@@ -13,21 +13,30 @@ const s3 = new S3Client({
   },
 });
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { roomId: string } }
-) {
+export async function PATCH(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // ✅ URL'den `roomId` parametresini al
+    const urlParts = request.nextUrl.pathname.split("/");
+    const roomId = urlParts[urlParts.length - 1];
+
+    if (!roomId) {
+      return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
+    }
+
     // Odanın sahibi olup olmadığını kontrol et
     const roomCheck = await pool.query(
-      "SELECT created_by FROM yellcord_rooms WHERE id = $1",
-      [params.roomId]
+      "SELECT created_by, logo_url FROM yellcord_rooms WHERE id = $1",
+      [roomId]
     );
+
+    if (roomCheck.rows.length === 0) {
+      return NextResponse.json({ error: "Oda bulunamadı" }, { status: 404 });
+    }
 
     if (roomCheck.rows[0]?.created_by !== parseInt(session.user.id)) {
       return NextResponse.json(
@@ -71,8 +80,8 @@ export async function PATCH(
       ? "UPDATE yellcord_rooms SET name = $1, logo_url = $2 WHERE id = $3"
       : "UPDATE yellcord_rooms SET name = $1 WHERE id = $2";
     const updateValues = logoUrl
-      ? [name, logoUrl, params.roomId]
-      : [name, params.roomId];
+      ? [name, logoUrl, roomId]
+      : [name, roomId];
 
     await pool.query(updateQuery, updateValues);
 
@@ -86,21 +95,30 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { roomId: string } }
-) {
+export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // ✅ URL'den `roomId` parametresini al
+    const urlParts = request.nextUrl.pathname.split("/");
+    const roomId = urlParts[urlParts.length - 1];
+
+    if (!roomId) {
+      return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
+    }
+
     // Odanın sahibi olup olmadığını kontrol et
     const roomCheck = await pool.query(
       "SELECT created_by, logo_url FROM yellcord_rooms WHERE id = $1",
-      [params.roomId]
+      [roomId]
     );
+
+    if (roomCheck.rows.length === 0) {
+      return NextResponse.json({ error: "Oda bulunamadı" }, { status: 404 });
+    }
 
     if (roomCheck.rows[0]?.created_by !== parseInt(session.user.id)) {
       return NextResponse.json(
@@ -122,13 +140,9 @@ export async function DELETE(
 
     // Odayı ve ilişkili verileri sil
     await pool.query("BEGIN");
-    await pool.query("DELETE FROM yellcord_messages WHERE room_id = $1", [
-      params.roomId,
-    ]);
-    await pool.query("DELETE FROM yellcord_room_members WHERE room_id = $1", [
-      params.roomId,
-    ]);
-    await pool.query("DELETE FROM yellcord_rooms WHERE id = $1", [params.roomId]);
+    await pool.query("DELETE FROM yellcord_messages WHERE room_id = $1", [roomId]);
+    await pool.query("DELETE FROM yellcord_room_members WHERE room_id = $1", [roomId]);
+    await pool.query("DELETE FROM yellcord_rooms WHERE id = $1", [roomId]);
     await pool.query("COMMIT");
 
     return NextResponse.json({ message: "Oda silindi" });
@@ -142,33 +156,21 @@ export async function DELETE(
   }
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: { roomId: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Kullanıcının odaya üye olup olmadığını kontrol et
-    const memberCheck = await pool.query(
-      `
-      SELECT 1 FROM yellcord_room_members
-      WHERE room_id = $1 AND user_id = $2
-      `,
-      [params.roomId, session.user.id]
-    );
+    // ✅ URL'den `roomId` parametresini al
+    const urlParts = request.nextUrl.pathname.split("/");
+    const roomId = urlParts[urlParts.length - 1];
 
-    if (memberCheck.rows.length === 0) {
-      return NextResponse.json(
-        { error: "Bu odaya erişim yetkiniz yok" },
-        { status: 403 }
-      );
+    if (!roomId) {
+      return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
 
-    // Oda bilgilerini getir
     const result = await pool.query(
       `
       SELECT r.*, u.username as creator_name
@@ -176,22 +178,19 @@ export async function GET(
       JOIN yellcord_users u ON r.created_by = u.id
       WHERE r.id = $1
       `,
-      [params.roomId]
+      [roomId]
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { error: "Oda bulunamadı" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Oda bulunamadı" }, { status: 404 });
     }
 
     return NextResponse.json({ room: result.rows[0] });
   } catch (error) {
-    console.error("Error fetching room:", error);
+    console.error("Database error:", error);
     return NextResponse.json(
-      { error: "Oda bilgileri alınırken hata oluştu" },
+      { error: "İç sunucu hatası" },
       { status: 500 }
     );
   }
-} 
+}

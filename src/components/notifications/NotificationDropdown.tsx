@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
 import { tr } from "date-fns/locale";
 
 interface Notification {

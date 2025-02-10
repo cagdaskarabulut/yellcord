@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
     const roomId = searchParams.get("roomId");
 
     if (!roomId) {
@@ -22,7 +22,16 @@ export async function GET(request: Request) {
 
     const result = await pool.query(
       `
-      SELECT m.*, u.username, u.avatar_url
+      SELECT 
+        m.*,
+        json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'name', u.username,
+          'email', u.email,
+          'avatar_url', u.avatar_url,
+          'image', u.avatar_url
+        ) as user
       FROM yellcord_messages m
       JOIN yellcord_users u ON m.user_id = u.id
       WHERE m.room_id = $1
@@ -41,7 +50,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
@@ -73,16 +82,41 @@ export async function POST(request: Request) {
       );
     }
 
+    // Mesajı veritabanına kaydet ve kullanıcı bilgileriyle birlikte döndür
     const result = await pool.query(
       `
-      INSERT INTO yellcord_messages (content, room_id, user_id)
-      VALUES ($1, $2, $3)
-      RETURNING id, content, created_at
+      WITH inserted_message AS (
+        INSERT INTO yellcord_messages (content, room_id, user_id)
+        VALUES ($1, $2, $3)
+        RETURNING id, content, room_id, user_id, created_at
+      )
+      SELECT 
+        m.*,
+        json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'name', u.username,
+          'email', u.email,
+          'avatar_url', u.avatar_url,
+          'image', u.avatar_url
+        ) as user
+      FROM inserted_message m
+      JOIN yellcord_users u ON m.user_id = u.id
       `,
       [content, roomId, session.user.id]
     );
 
-    return NextResponse.json(result.rows[0], { status: 201 });
+    const savedMessage = result.rows[0];
+    console.log("Mesaj kaydedildi:", savedMessage);
+
+    // @ts-ignore
+    const res = request as any;
+    if (res?.socket?.server?.io) {
+      res.socket.server.io.to(roomId).emit('new-message', savedMessage);
+      console.log("Mesaj socket üzerinden iletildi");
+    }
+
+    return NextResponse.json(savedMessage, { status: 201 });
   } catch (error) {
     console.error("Error sending message:", error);
     return NextResponse.json(

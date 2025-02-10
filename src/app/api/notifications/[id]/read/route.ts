@@ -1,16 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const id = context?.params?.id;
+
+    if (!id) {
+      return NextResponse.json({ error: "Bildirim ID eksik" }, { status: 400 });
     }
 
     await pool.query(
@@ -19,7 +22,7 @@ export async function POST(
       SET is_read = true
       WHERE id = $1 AND user_id = $2
       `,
-      [params.id, session.user.id]
+      [id, session.user.id]
     );
 
     return NextResponse.json({ success: true });
@@ -30,4 +33,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}
