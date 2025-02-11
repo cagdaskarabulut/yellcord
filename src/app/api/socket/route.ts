@@ -1,4 +1,4 @@
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -32,7 +32,7 @@ const ioHandler = async (req: NextRequest) => {
     // @ts-ignore
     const io = global.io;
 
-    io.on("connection", async (socket: Socket) => {
+    io.on("connection", async (socket) => {
       console.log("Yeni bağlantı:", socket.id);
       socket.data.userId = session.user.id;
 
@@ -132,4 +132,4 @@ const ioHandler = async (req: NextRequest) => {
 };
 
 export const GET = ioHandler;
-export const POST = ioHandler;
+export const POST = ioHandler; 

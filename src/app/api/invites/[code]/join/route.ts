@@ -3,7 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { code: string } }
+) {
   try {
     // Kullanıcının oturumunu kontrol et
     const session = await getServerSession(authOptions);
@@ -11,10 +14,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `code` değişkenini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const code = urlParts[urlParts.length - 2]; // `[code]` dinamik parametresi
-
+    // Davet kodunu al
+    const { code } = params;
     if (!code) {
       return NextResponse.json({ error: "Davet kodu eksik" }, { status: 400 });
     }
@@ -57,7 +58,6 @@ export async function POST(request: NextRequest) {
       { message: "Odaya başarıyla katıldınız", roomId: invite.room_id },
       { status: 200 }
     );
-
   } catch (error) {
     console.error("❌ Odaya katılma hatası:", error);
     return NextResponse.json(

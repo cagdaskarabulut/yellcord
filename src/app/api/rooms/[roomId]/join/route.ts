@@ -3,17 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: { roomId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `roomId` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const roomId = urlParts[urlParts.length - 2]; // `[roomId]` parametresi
-
+    const { roomId } = params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
@@ -48,7 +45,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Odaya katılma hatası:", error);
+    console.error("Error joining room:", error);
     return NextResponse.json(
       { error: "Odaya katılırken hata oluştu" },
       { status: 500 }

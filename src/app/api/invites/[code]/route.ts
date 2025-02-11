@@ -3,17 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: { code: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `code` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const code = urlParts[urlParts.length - 1]; // `[code]` parametresi
-
+    const { code } = params;
     if (!code) {
       return NextResponse.json(
         { error: "Davet kodu eksik" },
@@ -49,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ room: result.rows[0] });
   } catch (error) {
-    console.error("❌ Davet bilgileri alınırken hata:", error);
+    console.error("Error fetching invite:", error);
     return NextResponse.json(
       { error: "Davet bilgileri alınamadı" },
       { status: 500 }

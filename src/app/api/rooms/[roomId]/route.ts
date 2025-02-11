@@ -13,17 +13,17 @@ const s3 = new S3Client({
   },
 });
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { roomId: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `roomId` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const roomId = urlParts[urlParts.length - 1];
-
+    const { roomId } = params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
@@ -95,17 +95,17 @@ export async function PATCH(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { roomId: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `roomId` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const roomId = urlParts[urlParts.length - 1];
-
+    const { roomId } = params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
@@ -156,17 +156,17 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { roomId: string } }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `roomId` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const roomId = urlParts[urlParts.length - 1];
-
+    const { roomId } = params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }

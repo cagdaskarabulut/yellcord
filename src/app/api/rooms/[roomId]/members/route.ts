@@ -3,17 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, { params }: { params: { roomId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `roomId` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const roomId = urlParts[urlParts.length - 2];
-
+    const { roomId } = params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
@@ -39,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ members: result.rows });
   } catch (error) {
-    console.error("❌ Üyeler yüklenirken hata oluştu:", error);
+    console.error("Error fetching members:", error);
     return NextResponse.json(
       { error: "Üyeler yüklenirken hata oluştu" },
       { status: 500 }
@@ -47,17 +44,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest, { params }: { params: { roomId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `roomId` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const roomId = urlParts[urlParts.length - 2];
-
+    const { roomId } = params;
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get("memberId");
 
@@ -100,7 +94,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: "Üye odadan çıkarıldı" });
   } catch (error) {
-    console.error("❌ Üye çıkarılırken hata oluştu:", error);
+    console.error("Error removing member:", error);
     return NextResponse.json(
       { error: "Üye çıkarılırken hata oluştu" },
       { status: 500 }

@@ -4,17 +4,14 @@ import { authOptions } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import pool from "@/lib/db";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: { roomId: string } }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ✅ URL'den `roomId` parametresini al
-    const urlParts = request.nextUrl.pathname.split("/");
-    const roomId = urlParts[urlParts.length - 2]; // `[roomId]` parametresi
-
+    const { roomId } = params;
     if (!roomId) {
       return NextResponse.json(
         { error: "Oda ID eksik" },
@@ -56,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ inviteLink });
   } catch (error) {
-    console.error("❌ Davet linki oluşturma hatası:", error);
+    console.error("Error creating invite:", error);
     return NextResponse.json(
       { error: "Davet linki oluşturulamadı" },
       { status: 500 }
