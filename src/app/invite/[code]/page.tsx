@@ -115,7 +115,6 @@ export default function InvitePage() {
             <p className="text-gray-400">{room.member_count} üye</p>
           </div>
         </div>
-
         <p className="text-gray-300 mb-6">
           {session?.user?.name}, {room.name} odasına davet edildiniz.
         </p>
