@@ -3,10 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { code: string } }
-) {
+export async function POST(request: NextRequest, context: any) {
   try {
     // Kullanıcının oturumunu kontrol et
     const session = await getServerSession(authOptions);
@@ -15,7 +12,7 @@ export async function POST(
     }
 
     // Davet kodunu al
-    const { code } = params;
+    const { code } = context.params;
     if (!code) {
       return NextResponse.json({ error: "Davet kodu eksik" }, { status: 400 });
     }

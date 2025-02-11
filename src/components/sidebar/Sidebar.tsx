@@ -53,7 +53,7 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {isLoading ? (
           <div className="text-gray-400 text-center p-4">Yükleniyor...</div>
-        ) : rooms.length === 0 ? (
+        ) : !rooms || rooms.length === 0 ? (
           <div className="text-gray-400 text-center p-4">Henüz hiç oda yok</div>
         ) : (
           <>

@@ -15,7 +15,8 @@ CREATE TABLE yellcord_rooms (
     name VARCHAR(100) NOT NULL,
     logo_url TEXT,
     created_by INTEGER REFERENCES yellcord_users(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_public BOOLEAN DEFAULT true
 );
 
 -- Oda üyelikleri tablosu
@@ -49,7 +50,8 @@ CREATE TABLE yellcord_invites (
     used_by INTEGER REFERENCES yellcord_users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    used_at TIMESTAMP WITH TIME ZONE
+    used_at TIMESTAMP WITH TIME ZONE,
+    is_private BOOLEAN DEFAULT false
 );
 
 -- Bildirimler tablosu

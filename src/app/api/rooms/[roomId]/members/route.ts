@@ -3,14 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/lib/db";
 
-export async function GET(request: NextRequest, { params }: { params: { roomId: string } }) {
+export async function GET(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId } = params;
+    const { roomId } = context.params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
@@ -44,14 +44,14 @@ export async function GET(request: NextRequest, { params }: { params: { roomId: 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { roomId: string } }) {
+export async function DELETE(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId } = params;
+    const { roomId } = context.params;
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get("memberId");
 

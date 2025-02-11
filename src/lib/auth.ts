@@ -81,5 +81,4 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 gün
   },
   debug: process.env.NODE_ENV === "development",
-  trustHost: true,
 }; 

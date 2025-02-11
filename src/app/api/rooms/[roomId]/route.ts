@@ -13,17 +13,14 @@ const s3 = new S3Client({
   },
 });
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { roomId: string } }
-) {
+export async function PATCH(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId } = params;
+    const { roomId } = context.params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
@@ -95,17 +92,14 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { roomId: string } }
-) {
+export async function DELETE(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId } = params;
+    const { roomId } = context.params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }
@@ -156,17 +150,14 @@ export async function DELETE(
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { roomId: string } }
-) {
+export async function GET(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId } = params;
+    const { roomId } = context.params;
     if (!roomId) {
       return NextResponse.json({ error: "Oda ID eksik" }, { status: 400 });
     }

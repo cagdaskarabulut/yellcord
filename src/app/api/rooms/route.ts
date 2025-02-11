@@ -24,6 +24,7 @@ export async function GET() {
       SELECT r.*, COUNT(rm.user_id) as member_count
       FROM yellcord_rooms r
       LEFT JOIN yellcord_room_members rm ON r.id = rm.room_id
+      WHERE r.is_public = true
       GROUP BY r.id
       ORDER BY r.created_at DESC
     `);

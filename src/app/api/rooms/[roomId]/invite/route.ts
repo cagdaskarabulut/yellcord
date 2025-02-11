@@ -4,14 +4,14 @@ import { authOptions } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 import pool from "@/lib/db";
 
-export async function POST(request: NextRequest, { params }: { params: { roomId: string } }) {
+export async function POST(request: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { roomId } = params;
+    const { roomId } = context.params;
     if (!roomId) {
       return NextResponse.json(
         { error: "Oda ID eksik" },
