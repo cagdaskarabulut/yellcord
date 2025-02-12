@@ -15,6 +15,7 @@ export default async function MainLayout({
   if (!session) {
     redirect("/login");
   }
+
   return (
     <Providers session={session}>
       <div className="h-screen flex flex-col bg-gray-900">
