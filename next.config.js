@@ -9,7 +9,6 @@ const nextConfig = {
   env: {
     DB_URL: process.env.DB_URL,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    NEXTAUTH_URL_INTERNAL: process.env.NEXTAUTH_URL_INTERNAL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID,
     AWS_S3_SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY,
