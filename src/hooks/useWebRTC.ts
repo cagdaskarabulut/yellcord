@@ -62,13 +62,16 @@ export const useWebRTC = (roomId: string, userId: string) => {
   };
 
   const startCall = async (type: 'audio' | 'video') => {
+    console.log('Sesli/görüntülü görüşme başlatılıyor:', type);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: type === 'video',
       });
+      console.log('Yerel medya akışı alındı:', stream);
       setLocalStream(stream);
       socket?.emit('join-call', { roomId, userId });
+      console.log('Görüşmeye katılma isteği gönderildi:', { roomId, userId });
     } catch (error) {
       console.error('Medya erişimi hatası:', error);
     }

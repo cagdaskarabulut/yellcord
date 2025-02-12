@@ -51,6 +51,10 @@ export const useSocket = () => {
           console.log("Kullanıcı odadan ayrıldı:", data);
         });
 
+        socket.current.on("new-message", (message) => {
+          console.log("Yeni mesaj alındı:", message);
+        });
+
         setIsInitialized(true);
       } catch (error) {
         console.error("Socket başlatma hatası:", error);

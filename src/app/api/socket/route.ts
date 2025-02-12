@@ -106,8 +106,10 @@ const ioHandler = async (req: NextRequest) => {
           const savedMessage = result.rows[0];
           console.log("Mesaj kaydedildi:", savedMessage);
 
+          console.log("Mesaj gönderiliyor: ", data);
           // Mesajı odadaki tüm kullanıcılara gönder
           io.to(data.roomId).emit("new-message", savedMessage);
+          console.log("Mesaj gönderildi: ", savedMessage);
         } catch (error) {
           console.error("Mesaj gönderme hatası:", error);
           socket.emit("error", "Mesaj gönderilirken bir hata oluştu");
